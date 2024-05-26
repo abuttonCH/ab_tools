@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 300
+
+per-file-ignores = scripts/main.py: E402
+                   docs/source/conf.py: E402,E261

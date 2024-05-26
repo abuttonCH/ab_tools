@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# add timestamp
+INSTALL_PYTHON=$(which python)
+
+TIMESTAMP=$(date +"%Y_%m_%_d-%H:%M:%S")
+
+SUCCESS_STATEMENT="Successfully built python package."
+
+FAILED_STATEMENT="Failed building the python package!:\
+                    'python setup.py install' failed\n\
+                 \ngit push command was not accepted \
+                 "
+
+# building python command
+python setup.py install > ".setuplog/setup_$TIMESTAMP-push.log" 2>&1
+if [ $? -eq 1 ]; then
+    # print error statement
+    echo $FAILED_STATEMENT;
+    # updated log name to say that the operation failed
+    mv ".setuplog/setup_$TIMESTAMP-push.log" ".setuplog/setup_$TIMESTAMP-push-FAILED.log";
+    # exit process is build fails
+    exit 1
+else
+    echo $SUCCESS_STATEMENT
+fi
