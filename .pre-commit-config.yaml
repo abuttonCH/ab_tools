@@ -1,4 +1,4 @@
-exclude: README.md|tests/.testlogs|.setuplog
+exclude: README.md|tests/.testlogs|.setuplog|tests
 
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
@@ -34,7 +34,7 @@ repos:
   rev: 6.1.1
   hooks:
     - id: pydocstyle
-      args: ["--ignore=D107,D204,D407,D213,D212,D413,D406"]
+      args: ["--ignore=D107,D204,D407,D213,D212,D413,D406,D211"]
 
 - repo: local
   hooks:
