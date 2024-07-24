@@ -36,6 +36,7 @@ class Preprocessing:
         self.__pipeline = None
         self.id_columns = id_columns
         self.target_columns = target_columns
+        self.label_encoder = None
         # remove the ids from the dataframe
         data = self.remove_ids(data, id_columns)
         # separate the features from the target labels
