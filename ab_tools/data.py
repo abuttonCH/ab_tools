@@ -1,5 +1,5 @@
 """Methods to preprocess data for ML tasks."""
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Literal
 
 
 import pandas as pd
@@ -7,6 +7,9 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
+
+_TASK_TYPES = Literal["Regression", "Categorical"]
 
 
 class Preprocessing:
@@ -14,7 +17,11 @@ class Preprocessing:
     """Class for creating the data preprocessing pipeline."""
 
     def __init__(
-        self, data: pd.DataFrame, id_columns: List[str], target_columns: List[str]
+        self,
+        data: pd.DataFrame,
+        id_columns: List[str],
+        target_columns: List[str],
+        task_type: _TASK_TYPES = "Categorical",
     ) -> None:
         """Initialize the pipeline.
 
@@ -22,6 +29,8 @@ class Preprocessing:
             data: Data to be procesed.
             id_columns: Column(s) containing data point identifiers
             target_columns: Column(s) containing the taget label(s)
+            task_type: The type of learning task. If categorical perform
+                one-hot encoding on the label values.
         """
         # set initial value of the pipeline
         self.__pipeline = None
@@ -33,6 +42,14 @@ class Preprocessing:
         self.input_features, self.target_labels = self.separate_features_and_target(
             data, target_columns
         )
+
+        # one hot encode target labels if the task is categorical
+        if task_type == "Categorical":
+            self.label_encoder = LabelEncoder()
+            self.target_labels = self.label_encoder.fit_transform(
+                self.target_labels.values.ravel()
+            )
+
         # extract numeric and categorical columns from input features
         self.numeric_cols = self.input_features.select_dtypes(
             include=["number"]
