@@ -3,28 +3,28 @@
 import pandas as pd
 from ab_tools.data import Preprocessing
 
+TEST_DATA = pd.DataFrame(
+    {
+        "ids": [1, 2, 3, 4, 5],
+        "num feature1": [0.1, 0.2, 0.3, 0.4, 0.5],
+        "num feature2": [0.1, 0.3, 0.5, 0.7, 0.9],
+        "cat feature1": ["a", "b", "c", "d", "e"],
+        "cat feature2": ["yes", "no", "yes", "yes", "no"],
+        "target labels": [1, 0, 0, 1, 0],
+    }
+)
+
 
 def test_preprocessing_pipeline():
-    test_data = pd.DataFrame(
-        {
-            "ids": [1, 2, 3, 4, 5],
-            "num feature1": [0.1, 0.2, 0.3, 0.4, 0.5],
-            "num feature2": [0.1, 0.3, 0.5, 0.7, 0.9],
-            "cat feature1": ["a", "b", "c", "d", "e"],
-            "cat feature2": ["yesy", "no", "yes", "yes", "no"],
-            "target labels": [1, 0, 0, 1, 0],
-        }
-    )
-
     id_col = ["ids"]
     target_col = ["target labels"]
 
-    preprocessing = Preprocessing(test_data, id_col, target_col)
+    preprocessing = Preprocessing(TEST_DATA, id_col, target_col)
     # set pipeline
     preprocessing.set_pipeline()
 
     # transform data
-    preprocessing.pipeline.fit_transform(test_data)
+    preprocessing.pipeline.fit_transform(TEST_DATA)
 
     # check numeric columns
     assert preprocessing.numeric_cols[0] == "num feature1"

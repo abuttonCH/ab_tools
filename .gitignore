@@ -3,7 +3,8 @@
 outputs/
 data/
 private/
-test/.testlogs/*
+tests/.testlogs/*
+tests/.testfigs/*
 tests/test_output/
 docs/build
 
