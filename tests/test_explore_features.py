@@ -45,3 +45,9 @@ def test_scatter_plot():
 def test_perform_eda():
     explore = ExploreFeatures(NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
     explore.perform_eda(TEST_DATA, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_EDA.png")
+
+def test_kaggle():
+    kaggle_df = pd.read_csv("tests/train.csv")
+    preprocessing = Preprocessing(kaggle_df, ["id"], ["Rings"])
+    explore = ExploreFeatures(preprocessing.numeric_cols, preprocessing.categorical_cols, preprocessing.target_columns)
+    explore.perform_eda(kaggle_df, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_kaggle.png")

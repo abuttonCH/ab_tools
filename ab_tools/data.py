@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional, Literal
 
 
 import pandas as pd
+import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
@@ -231,11 +232,12 @@ class ExploreFeatures:
                 using plt.show()
             figsize: A tuple containing the plot dimensions.
         """
-        correlation_matrix = data[self.numeric_cols].corr()
-        plt.figure(figsize=figsize)
-        sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", linewidths=0.5)
-        plt.title("Correlation Matrix")
-        self.show_plot(plot_name)
+        if len(self.numeric_cols) == 0:
+            correlation_matrix = data[self.numeric_cols].corr()
+            plt.figure(figsize=figsize)
+            sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", linewidths=0.5)
+            plt.title("Correlation Matrix")
+            self.show_plot(plot_name)
 
     def violin_plots(
         self,
@@ -256,7 +258,10 @@ class ExploreFeatures:
         rows = math.ceil(num_plots / cols)
 
         fig, axes = plt.subplots(rows, cols, figsize=figsize)
-        axes = axes.flatten()
+        if len(axes) != 1:
+            axes = axes.flatten()
+        else:
+            axes = [axes]
 
         for i, column in enumerate(self.numeric_cols):
             sns.violinplot(x=self.target_col[0], y=column, data=data, ax=axes[i])
@@ -275,23 +280,27 @@ class ExploreFeatures:
         plot_name: str = "",
         figsize: Tuple[int, int] = (15, 10),
     ) -> None:
-        """Plot a target label heatmap for each categorical feature.
-
-        Args:
-            data: Data to perform analysis on.
-            plot_name: The name for the plot file. If empty then display plot
-                using plt.show()
-            figsize: A tuple containing the plot dimensions.
-        """
+        """Plot a target label heatmap for each categorical feature."""
         num_plots = len(self.categoric_cols)
         cols = math.ceil(math.sqrt(num_plots))
         rows = math.ceil(num_plots / cols)
 
         fig, axes = plt.subplots(rows, cols, figsize=figsize)
-        axes = axes.flatten()
+
+        # Ensure axes is always iterable
+        if isinstance(axes, np.ndarray):
+            axes = axes.ravel()
+        else:
+            axes = [axes]
 
         for i, column in enumerate(self.categoric_cols):
-            cross_table_plot = pd.crosstab(data[column], data[self.target_col[0]])
+            if column not in data.columns or self.target_col[0] not in data.columns:
+                continue
+
+            cross_table_plot = pd.crosstab(
+                data[column].dropna(), data[self.target_col[0]].dropna()
+            )
+
             sns.heatmap(
                 cross_table_plot,
                 annot=True,
@@ -303,7 +312,7 @@ class ExploreFeatures:
             axes[i].set_title(f"Categoric features - Heatmap: {column}")
             axes[i].tick_params(axis="x", rotation=45)
 
-        # Hide any remaining empty subplots
+        # Hide unused subplots
         for i in range(num_plots, rows * cols):
             fig.delaxes(axes[i])
 
