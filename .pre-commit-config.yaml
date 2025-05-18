@@ -10,7 +10,7 @@ repos:
     -   id: check-added-large-files
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 4.0.0
+  rev: 6.1.0
   hooks:
     - id: flake8
 
@@ -23,7 +23,7 @@ repos:
   rev: v1.8.0
   hooks:
     - id: mypy
-      args: [--python-version=3.10]
+      args: [--exclude=site-packages, --python-version=3.10]
 
 - repo: https://github.com/econchick/interrogate
   rev: 1.5.0
