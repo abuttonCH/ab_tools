@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/abuttonCH/ab-cookiecutter.git",
-  "commit": "16e2ebe762c6963b5c182b1ed10ee2e05b73da6d",
+  "commit": "f9d3de81f66a2481e45159283bf2500238ecc8db",
   "checkout": null,
   "context": {
     "cookiecutter": {
