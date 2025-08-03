@@ -1,4 +1,5 @@
 """Methods for preprocessing and exploring data for ML tasks."""
+
 from typing import List, Tuple, Optional, Literal
 
 
@@ -17,7 +18,6 @@ _TASK_TYPES = Literal["Regression", "Categorical"]
 
 
 class Preprocessing:
-
     """Class for creating the data preprocessing pipeline."""
 
     def __init__(
@@ -171,7 +171,6 @@ class Preprocessing:
 
 
 class ExploreFeatures:
-
     """Class for performing exploratory data analysis on the input features."""
 
     def __init__(
