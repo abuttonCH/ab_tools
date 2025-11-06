@@ -30,7 +30,7 @@ class Preprocessing:
         """Initialize the pipeline.
 
         Args:
-            data: Data to be processed.
+            data: Data set to be processed.
             id_columns: Column(s) containing data point identifiers
             target_columns: Column(s) containing the target label(s)
             task_type: The type of learning task. If categorical perform
@@ -231,7 +231,7 @@ class ExploreFeatures:
                 using plt.show()
             figsize: A tuple containing the plot dimensions.
         """
-        if len(self.numeric_cols) == 0:
+        if len(self.numeric_cols) != 0:
             correlation_matrix = data[self.numeric_cols].corr()
             plt.figure(figsize=figsize)
             sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", linewidths=0.5)
@@ -252,26 +252,27 @@ class ExploreFeatures:
                 using plt.show()
             figsize: A tuple containing the plot dimensions.
         """
-        num_plots = len(self.numeric_cols)
-        cols = math.ceil(math.sqrt(num_plots))
-        rows = math.ceil(num_plots / cols)
+        if len(self.numeric_cols) != 0:
+            num_plots = len(self.numeric_cols)
+            cols = math.ceil(math.sqrt(num_plots))
+            rows = math.ceil(num_plots / cols)
 
-        fig, axes = plt.subplots(rows, cols, figsize=figsize)
-        if len(axes) != 1:
-            axes = axes.flatten()
-        else:
-            axes = [axes]
+            fig, axes = plt.subplots(rows, cols, figsize=figsize)
+            if len(axes) != 1:
+                axes = axes.flatten()
+            else:
+                axes = [axes]
 
-        for i, column in enumerate(self.numeric_cols):
-            sns.violinplot(x=self.target_col[0], y=column, data=data, ax=axes[i])
-            axes[i].set_title(f"Violin plot: {column}")
-            axes[i].tick_params(axis="x", rotation=45)
+            for i, column in enumerate(self.numeric_cols):
+                sns.violinplot(x=self.target_col[0], y=column, data=data, ax=axes[i])
+                axes[i].set_title(f"Violin plot: {column}")
+                axes[i].tick_params(axis="x", rotation=45)
 
-        # Hide any remaining empty subplots
-        for i in range(num_plots, rows * cols):
-            fig.delaxes(axes[i])
+            # Hide any remaining empty subplots
+            for i in range(num_plots, rows * cols):
+                fig.delaxes(axes[i])
 
-        self.show_plot(plot_name)
+            self.show_plot(plot_name)
 
     def category_heatmap(
         self,
