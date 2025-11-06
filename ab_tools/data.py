@@ -174,15 +174,21 @@ class ExploreFeatures:
     """Class for performing exploratory data analysis on the input features."""
 
     def __init__(
-        self, numeric_cols: pd.Series, categoric_cols: pd.Series, target_col: pd.Series
+        self,
+        data: pd.DataFrame,
+        numeric_cols: pd.Series,
+        categoric_cols: pd.Series,
+        target_col: pd.Series,
     ) -> None:
         """Initialize class.
 
         Args:
+            data: Data to perform analysis on.
             numeric_cols: Column names for the numeric input features.
             categoric_cols: Column names for the categorical input features.
             target_col: Column name for the target labels.
         """
+        self.data = data
         self.numeric_cols = numeric_cols
         self.categoric_cols = categoric_cols
         self.target_col = target_col
@@ -219,7 +225,6 @@ class ExploreFeatures:
 
     def correlation_matrix(
         self,
-        data: pd.DataFrame,
         plot_name: str = "",
         figsize: Tuple[int, int] = (15, 10),
     ) -> None:
@@ -232,7 +237,7 @@ class ExploreFeatures:
             figsize: A tuple containing the plot dimensions.
         """
         if len(self.numeric_cols) != 0:
-            correlation_matrix = data[self.numeric_cols].corr()
+            correlation_matrix = self.data[self.numeric_cols].corr()
             plt.figure(figsize=figsize)
             sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", linewidths=0.5)
             plt.title("Correlation Matrix")
@@ -240,7 +245,6 @@ class ExploreFeatures:
 
     def violin_plots(
         self,
-        data: pd.DataFrame,
         plot_name: str = "",
         figsize: Tuple[int, int] = (15, 10),
     ):
@@ -264,7 +268,9 @@ class ExploreFeatures:
                 axes = [axes]
 
             for i, column in enumerate(self.numeric_cols):
-                sns.violinplot(x=self.target_col[0], y=column, data=data, ax=axes[i])
+                sns.violinplot(
+                    x=self.target_col[0], y=column, data=self.data, ax=axes[i]
+                )
                 axes[i].set_title(f"Violin plot: {column}")
                 axes[i].tick_params(axis="x", rotation=45)
 
@@ -276,7 +282,6 @@ class ExploreFeatures:
 
     def category_heatmap(
         self,
-        data: pd.DataFrame,
         plot_name: str = "",
         figsize: Tuple[int, int] = (15, 10),
     ) -> None:
@@ -294,11 +299,14 @@ class ExploreFeatures:
             axes = [axes]
 
         for i, column in enumerate(self.categoric_cols):
-            if column not in data.columns or self.target_col[0] not in data.columns:
+            if (
+                column not in self.data.columns
+                or self.target_col[0] not in self.data.columns
+            ):
                 continue
 
             cross_table_plot = pd.crosstab(
-                data[column].dropna(), data[self.target_col[0]].dropna()
+                self.data[column].dropna(), self.data[self.target_col[0]].dropna()
             )
 
             sns.heatmap(
@@ -321,7 +329,6 @@ class ExploreFeatures:
 
     def scatter_plot(
         self,
-        data: pd.DataFrame,
         plot_name: str = "",
     ) -> None:
         """Plot scatter plots between each of the numeric features.
@@ -331,11 +338,11 @@ class ExploreFeatures:
             plot_name: The name for the plot file. If empty then display plot
                 using plt.show()
         """
-        sns.pairplot(data[self.numeric_cols])
+        sns.pairplot(self.data[self.numeric_cols])
         plt.suptitle("Pair Plot of Numeric Variables", y=1.02)
         self.show_plot(plot_name)
 
-    def perform_eda(self, data: pd.DataFrame, plot_name="") -> None:
+    def perform_eda(self, plot_name="") -> None:
         """Perform all exploratory data analysis methods.
 
         Args:
@@ -344,14 +351,16 @@ class ExploreFeatures:
                 using plt.show()
         """
         self.correlation_matrix(
-            data, self.update_plotname(plot_name, "_Correlation_matrix.png", ".png")
+            plot_name=self.update_plotname(
+                plot_name, "_Correlation_matrix.png", ".png"
+            ),
         )
         self.violin_plots(
-            data, self.update_plotname(plot_name, "_Violin_plot.png", ".png")
+            plot_name=self.update_plotname(plot_name, "_Violin_plot.png", ".png")
         )
         self.category_heatmap(
-            data, self.update_plotname(plot_name, "_Category_map.png", ".png")
+            plot_name=self.update_plotname(plot_name, "_Category_map.png", ".png")
         )
         self.scatter_plot(
-            data, self.update_plotname(plot_name, "_Scatter_plot.png", ".png")
+            plot_name=self.update_plotname(plot_name, "_Scatter_plot.png", ".png")
         )

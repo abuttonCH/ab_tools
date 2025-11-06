@@ -26,28 +26,28 @@ TARGET_COL = preprocessing.target_columns
 
 def test_correlation_matrix():
     """Test the correlation matrix plot function."""
-    explore = ExploreFeatures(NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
-    explore.correlation_matrix(TEST_DATA, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_Correlation_matrix.png")
+    explore = ExploreFeatures(TEST_DATA, NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
+    explore.correlation_matrix(plot_name=f"tests/.testfigs/test_{TIMESTAMP}_Correlation_matrix.png")
 
 def test_violin_plot():
-    explore = ExploreFeatures(NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
-    explore.violin_plots(TEST_DATA, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_Violin_plot.png")
+    explore = ExploreFeatures(TEST_DATA, NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
+    explore.violin_plots(plot_name=f"tests/.testfigs/test_{TIMESTAMP}_Violin_plot.png")
 
 def test_category_heatmap():
-    explore = ExploreFeatures(NUMERIC_COLS, CATEGORICAL_COLS,TARGET_COL)
-    explore.category_heatmap(TEST_DATA, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_Category_heatmap.png")
+    explore = ExploreFeatures(TEST_DATA, NUMERIC_COLS, CATEGORICAL_COLS,TARGET_COL)
+    explore.category_heatmap(plot_name=f"tests/.testfigs/test_{TIMESTAMP}_Category_heatmap.png")
 
 def test_scatter_plot():
     """Test the scatter plot function."""
-    explore = ExploreFeatures(NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
-    explore.scatter_plot(TEST_DATA, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_scatter_plot.png")
+    explore = ExploreFeatures(TEST_DATA, NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
+    explore.scatter_plot(plot_name=f"tests/.testfigs/test_{TIMESTAMP}_scatter_plot.png")
 
 def test_perform_eda():
-    explore = ExploreFeatures(NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
-    explore.perform_eda(TEST_DATA, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_EDA.png")
+    explore = ExploreFeatures(TEST_DATA, NUMERIC_COLS, CATEGORICAL_COLS, TARGET_COL)
+    explore.perform_eda(plot_name=f"tests/.testfigs/test_{TIMESTAMP}_EDA.png")
 
 def test_kaggle():
     kaggle_df = pd.read_csv("tests/train.csv")
     preprocessing = Preprocessing(kaggle_df, ["id"], ["Rings"])
-    explore = ExploreFeatures(preprocessing.numeric_cols, preprocessing.categorical_cols, preprocessing.target_columns)
-    explore.perform_eda(kaggle_df, plot_name=f"tests/.testfigs/test_{TIMESTAMP}_kaggle.png")
+    explore = ExploreFeatures(kaggle_df, preprocessing.numeric_cols, preprocessing.categorical_cols, preprocessing.target_columns)
+    explore.perform_eda(plot_name=f"tests/.testfigs/test_{TIMESTAMP}_kaggle.png")
