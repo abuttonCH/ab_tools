@@ -1,29 +1,38 @@
 """Run unittest TestCase classes in a Jupyter notebook and display a styled HTML report."""
 
+import importlib
 import re
+import sys
 import time
 import unittest
 from collections.abc import Iterator
 from dataclasses import dataclass
 from html import escape
-from types import TracebackType
-from typing import cast
-import os
-import sys
 from pathlib import Path
+from types import TracebackType
+from typing import Callable, cast
+
+HTML: Callable[[str], object]
+display: Callable[..., object]
 
 try:  # pragma: no cover - exercised via tests when IPython is installed
-    from IPython.display import HTML, display
+    from IPython.display import HTML as _ipython_HTML, display as _ipython_display
 except ImportError:  # pragma: no cover - executed in minimal environments
 
-    def HTML(content: str) -> str:
+    def _default_html(content: str) -> str:
         """Return the provided HTML content unchanged when IPython is absent."""
         return content
 
-    def display(_: str) -> None:
+    def _default_display(*_: object, **__: object) -> None:
         """No-op replacement for IPython.display.display."""
         # Notebook rendering isn't available; swallow the output in tests/CLIs.
-        pass
+        return None
+
+    HTML = _default_html
+    display = _default_display
+else:
+    HTML = _ipython_HTML
+    display = _ipython_display
 
 
 @dataclass
@@ -39,6 +48,63 @@ class _CaseResult:
 ExcInfo = (
     tuple[type[BaseException], BaseException, TracebackType] | tuple[None, None, None]
 )
+
+
+def _resolve_start_directory(
+    start_dir: str, top_level_dir: str | None
+) -> tuple[Path, Path | None]:
+    """
+    Resolve the directory used for unittest discovery.
+
+    The lookup order tries:
+      1. Direct filesystem paths (absolute or relative to CWD/top_level_dir)
+      2. Importing ``start_dir`` as a module/package name
+      3. Falling back to the project root next to this file
+    """
+
+    def _normalized_module_name(name: str) -> str:
+        return name.replace("/", ".").replace("\\", ".")
+
+    provided_top: Path | None = None
+    if top_level_dir is not None:
+        provided_top = Path(top_level_dir).resolve()
+
+    # 1) direct filesystem paths
+    candidate_paths = []
+    start_path = Path(start_dir)
+    if start_path.is_absolute():
+        candidate_paths.append(start_path)
+    else:
+        candidate_paths.append(Path.cwd() / start_path)
+        if provided_top:
+            candidate_paths.append(provided_top / start_path)
+        candidate_paths.append(start_path)
+
+    for candidate in candidate_paths:
+        if candidate.exists():
+            return candidate.resolve(), provided_top or candidate.resolve().parent
+
+    # 2) try importing as a module (useful when the package ships with tests)
+    try:
+        module = importlib.import_module(_normalized_module_name(start_dir))
+    except ImportError:
+        pass
+    else:
+        module_file = getattr(module, "__file__", None)
+        if module_file is not None:
+            module_path = Path(module_file).resolve().parent
+            return module_path, module_path.parent
+
+    # 3) fallback to repo root next to this module
+    repo_root = Path(__file__).resolve().parents[2]
+    repo_candidate = repo_root / start_path
+    if repo_candidate.exists():
+        return repo_candidate.resolve(), repo_root
+
+    raise FileNotFoundError(
+        f"Could not locate start_dir '{start_dir}'. "
+        "Pass an absolute path or ensure the module can be imported."
+    )
 
 
 class _CollectingResult(unittest.TestResult):
@@ -467,20 +533,45 @@ def run_all_unittests_html(
     Returns:
         True if all tests passed (skips ignored), else False.
     """
-    if top_level_dir is None:
-        top_level_dir = os.getcwd()
+    normalized_top: str | None = None
+    if top_level_dir is not None:
+        normalized_top = str(Path(top_level_dir).resolve())
+    top_level_dir = normalized_top
 
-    # Make imports from the repo work in notebooks/colab
-    if add_cwd_to_syspath and top_level_dir not in sys.path:
-        sys.path.insert(0, top_level_dir)
+    try:
+        start_path, inferred_top = _resolve_start_directory(start_dir, top_level_dir)
+    except FileNotFoundError as exc:
+        raise ImportError(str(exc)) from exc
 
-    start_path = str(Path(top_level_dir) / start_dir)
-
-    suite = unittest.defaultTestLoader.discover(
-        start_dir=start_path,
-        pattern=file_pattern,
-        top_level_dir=top_level_dir,
+    sys_path_target = top_level_dir or (
+        str(inferred_top) if inferred_top else str(start_path.parent)
     )
+    if add_cwd_to_syspath and sys_path_target not in sys.path:
+        sys.path.insert(0, sys_path_target)
+
+    start_dir_arg = str(start_path)
+    if top_level_dir is not None:
+        top_dir_arg: str | None = top_level_dir
+    else:
+        package_root = (
+            inferred_top
+            if inferred_top and (start_path / "__init__.py").exists()
+            else None
+        )
+        top_dir_arg = str(package_root) if package_root is not None else None
+
+    loader = unittest.defaultTestLoader
+    if top_dir_arg is not None:
+        suite = loader.discover(
+            start_dir=start_dir_arg,
+            pattern=file_pattern,
+            top_level_dir=top_dir_arg,
+        )
+    else:
+        suite = loader.discover(
+            start_dir=start_dir_arg,
+            pattern=file_pattern,
+        )
 
     return _run_suite_html(
         suite,

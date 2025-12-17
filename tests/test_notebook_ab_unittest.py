@@ -91,3 +91,10 @@ def test_iter_test_cases_yields_nested_cases():
     cases = list(ab_unittest._iter_test_cases(suite))
     names = [c._testMethodName for c in cases]
     assert names == ["test_one", "test_two"]
+
+
+def test_resolve_start_directory_imports_tests_package():
+    start_path, top_path = ab_unittest._resolve_start_directory("tests", None)
+    assert start_path.name == "tests"
+    assert (start_path / "__init__.py").exists()
+    assert top_path is not None
